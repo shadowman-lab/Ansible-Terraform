@@ -1,0 +1,85 @@
+---
+- name: Send POST request using uri module to create a destroy plan
+  ansible.builtin.uri:
+    url: "https://app.terraform.io/api/v2/runs"
+    method: POST
+    headers:
+      Content-Type: "application/vnd.api+json"
+      Authorization: "Bearer {{ api_token }}"
+    body: |-
+      {
+        "data": {
+          "attributes": {
+              "is-destroy": true
+          },
+          "type": "runs",
+          "relationships": {
+            "workspace": {
+              "data": {
+                "type": "workspaces",
+                "id": "{{ workspace_id }}"
+              }
+            }
+          }
+        }
+      }
+    status_code: 201
+    body_format: json
+    timeout: 60
+  register: terraformplanresponse
+
+- name: Send Get request using uri module to get plan information
+  ansible.builtin.uri:
+    url: "https://app.terraform.io/api/v2/plans/{{ terraformplanresponse.json.data.relationships.plan.data.id }}/json-output"
+    headers:
+      Content-Type: "application/vnd.api+json"
+      Authorization: "Bearer {{ api_token }}"
+    status_code: 200, 204
+    body_format: json
+    return_content: true
+    timeout: 60
+  register: terraformplanresult
+  retries: 20
+  until: '"\"complete\":true" in terraformplanresult.content'
+
+- name: Set to JSON Var
+  ansible.builtin.set_fact:
+    jsonoutput: "{{ terraformplanresult.content | from_json }}"
+
+- name: Get before and after states
+  ansible.builtin.set_fact:
+    terraformbefore: "{{ jsonoutput.output_changes.vm_name_terraformvms.before | default([]) }}"
+    terraformafter: "{{ jsonoutput.output_changes.vm_name_terraformvms.after | default([]) }}"
+
+- name: Set fact of VMs to be deleted
+  ansible.builtin.set_fact:
+    vmstodelete: "{{ terraformbefore | difference(terraformafter) }}"
+
+- name: Send POST request using uri module to apply the destroy
+  ansible.builtin.uri:
+    url: "https://app.terraform.io/api/v2/runs/{{ terraformplanresponse.json.data.id }}/actions/apply"
+    method: POST
+    headers:
+      Content-Type: "application/vnd.api+json"
+      Authorization: "Bearer {{ api_token }}"
+    body: |-
+      {
+        "comment": "approved"
+      }
+    status_code: 202
+    timeout: 60
+  register: terraformapplyresponse
+
+- name: Send Get request using uri module to get plan status completed
+  ansible.builtin.uri:
+    url: "https://app.terraform.io/api/v2/runs/{{ terraformplanresponse.json.data.id }}"
+    headers:
+      Content-Type: "application/vnd.api+json"
+      Authorization: "Bearer {{ api_token }}"
+    status_code: 200
+    body_format: json
+    return_content: true
+    timeout: 60
+  register: terraformrunstatus
+  retries: 50
+  until: terraformrunstatus.json.data.attributes.status == "applied"

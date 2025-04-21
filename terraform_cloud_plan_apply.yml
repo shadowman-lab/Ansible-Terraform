@@ -1,0 +1,7 @@
+---
+- name: Leverage Terraform Plan and Apply
+  hosts: localhost
+  gather_facts: false
+
+  roles:
+    - shadowman_terraform_cloud
