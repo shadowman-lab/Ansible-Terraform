@@ -68,6 +68,7 @@
     workflow_template: "Unsubscribe VMs for Terraform"
     extra_vars:
       vm_name: "{{ vmstodelete | join(',') }}"
+      ticket_number: "{{ ticket_number | default(omit) }}"
     wait: true
   when: vmstodelete | length > 0
 
@@ -105,5 +106,6 @@
     workflow_template: "Config VM, Deploy Web App with Failure Paths Citrix"
     extra_vars:
       vm_name: "{{ vmstoadd | join(',') }}"
+      ticket_number: "{{ ticket_number | default(omit) }}"
     wait: true
   when: vmstoadd | length > 0
