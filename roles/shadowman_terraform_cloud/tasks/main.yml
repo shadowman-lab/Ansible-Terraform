@@ -13,7 +13,7 @@
               "variables": [
                   { "key": "instance_name_convention", "value": "\"{{ prefix }}\"" },
                   { "key": "number_of_instances", "value": "{{ numinstances }}" },
-                  { "key": "rhel_version", "value": "\"{{ os }}\"" }
+                  { "key": "rhel_version", "value": "\"{{ operating_system }}\"" }
           ]
           },
           "type": "runs",
