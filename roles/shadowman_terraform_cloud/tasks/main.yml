@@ -63,6 +63,14 @@
   ansible.builtin.set_fact:
     vmstoadd: "{{ terraformafter | difference(terraformbefore) }}"
 
+- name: Unsubscribe VMs
+  ansible.controller.workflow_launch:
+    workflow_template: "Unsubscribe VMs for Terraform"
+    extra_vars:
+      vm_name: "{{ vmstodelete | join(',') }}"
+    wait: true
+  when: vmstodelete | length > 0
+
 - name: Send POST request using uri module to apply the plan
   ansible.builtin.uri:
     url: "https://app.terraform.io/api/v2/runs/{{ terraformplanresponse.json.data.id }}/actions/apply"
@@ -91,3 +99,11 @@
   register: terraformrunstatus
   retries: 50
   until: terraformrunstatus.json.data.attributes.status == "applied"
+
+- name: Config VM, Deploy Web App with Failure Paths Citrix
+  ansible.controller.workflow_launch:
+    workflow_template: "Config VM, Deploy Web App with Failure Paths Citrix"
+    extra_vars:
+      vm_name: "{{ vmstoadd | join(',') }}"
+    wait: true
+  when: vmstoadd | length > 0

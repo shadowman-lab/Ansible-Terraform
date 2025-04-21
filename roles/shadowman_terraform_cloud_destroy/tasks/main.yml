@@ -55,6 +55,14 @@
   ansible.builtin.set_fact:
     vmstodelete: "{{ terraformbefore | difference(terraformafter) }}"
 
+- name: Unsubscribe VMs
+  ansible.controller.workflow_launch:
+    workflow_template: "Unsubscribe VMs for Terraform"
+    extra_vars:
+      vm_name: "{{ vmstodelete | join(',') }}"
+    wait: true
+  when: vmstodelete | length > 0
+
 - name: Send POST request using uri module to apply the destroy
   ansible.builtin.uri:
     url: "https://app.terraform.io/api/v2/runs/{{ terraformplanresponse.json.data.id }}/actions/apply"
