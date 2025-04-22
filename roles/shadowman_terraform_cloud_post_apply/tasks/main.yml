@@ -1,0 +1,69 @@
+---
+
+- name: Send Get request using uri module to get plan information
+  ansible.builtin.uri:
+    url: "{{ plan_json_api_url }}"
+    headers:
+      Content-Type: "application/vnd.api+json"
+      Authorization: "Bearer {{ api_token }}"
+    status_code: 200, 204
+    body_format: json
+    return_content: true
+    timeout: 60
+  register: terraformplanresult
+  retries: 20
+  until: '"\"complete\":true" in terraformplanresult.content'
+
+- name: Set plan output to JSON Var
+  ansible.builtin.set_fact:
+    jsonoutput: "{{ terraformplanresult.content | from_json }}"
+
+- name: Get before and after states for VMs
+  ansible.builtin.set_fact:
+    terraformbefore: "{{ jsonoutput.output_changes.vm_name_terraformvms.before | default([]) }}"
+    terraformafter: "{{ jsonoutput.output_changes.vm_name_terraformvms.after | default([]) }}"
+
+- name: Set fact of VMs to be configured
+  ansible.builtin.set_fact:
+    vmstoadd: "{{ terraformafter | difference(terraformbefore) }}"
+
+- name: Set hostnames if VMWare
+  ansible.controller.job_launch:
+    job_template: "Hostname Set VMWare"
+    extra_vars:
+      vm_name: "{{ vmstoadd | join(',') }}"
+      operating_system: "{{ operating_system }}"
+    wait: true
+  when:
+    - jsonoutput.configuration.provider_config.vsphere.name is defined
+    - vmstoadd | length > 0
+
+- name: Config VM, Deploy Web App with Failure Paths Citrix
+  ansible.controller.workflow_launch:
+    workflow_template: "Config VM, Deploy Web App with Failure Paths Citrix"
+    extra_vars:
+      vm_name: "{{ vmstoadd | join(',') }}"
+      ticket_number: "{{ ticket_number | default(omit) }}"
+    wait: true
+  when: vmstoadd | length > 0
+
+- name: Send POST request using uri module to callback to Terraform
+  ansible.builtin.uri:
+    url: "{{ task_result_callback_url }}"
+    method: POST
+    headers:
+      Content-Type: "application/vnd.api+json"
+      Authorization: "Bearer {{ access_token }}"
+    body: |-
+      {
+        "data": {
+          "type": "task-results",
+            "attributes": {
+              "status": "passed",
+              "message": "Any necessary configuration completed by AAP"
+            }
+          }
+      }
+    status_code: 202
+    timeout: 60
+  register: terraformapplyresponse

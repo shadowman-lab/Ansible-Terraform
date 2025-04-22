@@ -1,0 +1,7 @@
+---
+- name: Perform Post Terraform Apply Ansible Steps
+  hosts: localhost
+  gather_facts: false
+
+  roles:
+    - shadowman_terraform_cloud_post_apply
