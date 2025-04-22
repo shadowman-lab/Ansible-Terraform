@@ -106,6 +106,7 @@
     job_template: "Hostname Set VMWare"
     extra_vars:
       vm_name: "{{ vmstoadd | join(',') }}"
+      operating_system: "{{ operating_system }}"
     wait: true
   when:
     - workspace_id == "ws-Q8Pn2NAXd5WiTxq8"
