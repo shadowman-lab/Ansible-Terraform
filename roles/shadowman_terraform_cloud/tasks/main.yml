@@ -1,4 +1,84 @@
 ---
+- name: Send Get request using uri module to get vars information
+  ansible.builtin.uri:
+    url: "https://app.terraform.io/api/v2/vars?filter%5Borganization%5D%5Bname%5D=Shadowman&filter%5Bworkspace%5D%5Bid%5D={{ workspace_id }}"
+    headers:
+      Content-Type: "application/vnd.api+json"
+      Authorization: "Bearer {{ api_token }}"
+    status_code: 200, 204
+    body_format: json
+    return_content: true
+    timeout: 60
+  register: terraformvarsresult
+
+- name: Set Var ID
+  ansible.builtin.set_fact:
+    number_of_instances_id: "{{ terraformvarsresult.json.data | selectattr('attributes.key', 'match', 'number_of_instances') | map(attribute='id') | join(',') }}"
+    instance_name_convention_id: "{{ terraformvarsresult.json.data | selectattr('attributes.key', 'match', 'instance_name_convention') | map(attribute='id') | join(',') }}"
+    rhel_version_id: "{{ terraformvarsresult.json.data | selectattr('attributes.key', 'match', 'rhel_version') | map(attribute='id') | join(',') }}"
+
+- name: Update number_of_instances if defined
+  ansible.builtin.uri:
+    url: "https://app.terraform.io/api/v2/vars/{{ number_of_instances_id }}"
+    method: PATCH
+    headers:
+      Content-Type: "application/vnd.api+json"
+      Authorization: "Bearer {{ api_token }}"
+    body: |-
+      {
+        "data": {
+          "id":"{{ number_of_instances_id }}",
+          "attributes": {
+            "value":"{{ numinstances }}"
+          },
+          "type":"vars"
+        }
+      }
+    body_format: json
+    status_code: 200
+  when: numinstances is defined
+
+- name: Update prefix if defined
+  ansible.builtin.uri:
+    url: "https://app.terraform.io/api/v2/vars/{{ instance_name_convention_id }}"
+    method: PATCH
+    headers:
+      Content-Type: "application/vnd.api+json"
+      Authorization: "Bearer {{ api_token }}"
+    body: |-
+      {
+        "data": {
+          "id":"{{ instance_name_convention_id }}",
+          "attributes": {
+            "value":"{{ prefix }}"
+          },
+          "type":"vars"
+        }
+      }
+    body_format: json
+    status_code: 200
+  when: prefix is defined
+
+- name: Update operating_system if defined
+  ansible.builtin.uri:
+    url: "https://app.terraform.io/api/v2/vars/{{ rhel_version_id }}"
+    method: PATCH
+    headers:
+      Content-Type: "application/vnd.api+json"
+      Authorization: "Bearer {{ api_token }}"
+    body: |-
+      {
+        "data": {
+          "id":"{{ rhel_version_id }}",
+          "attributes": {
+            "value":"{{ operating_system }}"
+          },
+          "type":"vars"
+        }
+      }
+    body_format: json
+    status_code: 200
+  when: rhel_version_id is defined
 - name: Send POST request using uri module to run plan
   ansible.builtin.uri:
     url: "https://app.terraform.io/api/v2/runs"
