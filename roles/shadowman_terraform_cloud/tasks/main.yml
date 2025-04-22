@@ -87,7 +87,7 @@
     timeout: 60
   register: terraformapplyresponse
 
-- name: Send Get request using uri module to get plan status completed
+- name: Send Get request using uri module to get run status completed
   ansible.builtin.uri:
     url: "https://app.terraform.io/api/v2/runs/{{ terraformplanresponse.json.data.id }}"
     headers:
