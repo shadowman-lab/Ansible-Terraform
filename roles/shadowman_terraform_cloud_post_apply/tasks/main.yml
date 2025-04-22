@@ -50,7 +50,7 @@
 - name: Send POST request using uri module to callback to Terraform
   ansible.builtin.uri:
     url: "{{ task_result_callback_url }}"
-    method: POST
+    method: PATCH
     headers:
       Content-Type: "application/vnd.api+json"
       Authorization: "Bearer {{ access_token }}"
