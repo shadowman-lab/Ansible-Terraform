@@ -109,7 +109,7 @@
       operating_system: "{{ operating_system }}"
     wait: true
   when:
-    - workspace_id == "ws-Q8Pn2NAXd5WiTxq8"
+    - jsonoutput.configuration.provider_config.vsphere.name is defined
     - vmstoadd | length > 0
 
 - name: Config VM, Deploy Web App with Failure Paths Citrix
