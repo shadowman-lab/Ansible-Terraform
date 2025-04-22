@@ -101,6 +101,16 @@
   retries: 50
   until: terraformrunstatus.json.data.attributes.status == "applied"
 
+- name: Set hostnames if VMWare
+  ansible.controller.job_launch:
+    job_template: "Hostname Set VMWare"
+    extra_vars:
+      vm_name: "{{ vmstoadd | join(',') }}"
+    wait: true
+  when:
+    - workspace_id == "ws-Q8Pn2NAXd5WiTxq8"
+    - vmstoadd | length > 0
+
 - name: Config VM, Deploy Web App with Failure Paths Citrix
   ansible.controller.workflow_launch:
     workflow_template: "Config VM, Deploy Web App with Failure Paths Citrix"
