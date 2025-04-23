@@ -78,7 +78,8 @@
       }
     body_format: json
     status_code: 200
-  when: rhel_version_id is defined
+  when: operating_system is defined
+
 - name: Send POST request using uri module to run plan
   ansible.builtin.uri:
     url: "https://app.terraform.io/api/v2/runs"
