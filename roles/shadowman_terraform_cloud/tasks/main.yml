@@ -160,6 +160,7 @@
     status_code: 202
     timeout: 60
   register: terraformapplyresponse
+  when: jsonoutput.applyable
 
 - name: Send Get request using uri module to get run status completed
   ansible.builtin.uri:
@@ -174,6 +175,7 @@
   register: terraformrunstatus
   retries: 50
   until: terraformrunstatus.json.data.attributes.status == "applied"
+  when: jsonoutput.applyable
 
 - name: Set hostnames if VMWare
   ansible.controller.job_launch:
