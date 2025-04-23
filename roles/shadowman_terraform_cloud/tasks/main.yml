@@ -89,13 +89,6 @@
     body: |-
       {
         "data": {
-          "attributes": {
-              "variables": [
-                  { "key": "instance_name_convention", "value": "\"{{ prefix }}\"" },
-                  { "key": "number_of_instances", "value": "{{ numinstances }}" },
-                  { "key": "rhel_version", "value": "\"{{ operating_system }}\"" }
-          ]
-          },
           "type": "runs",
           "relationships": {
             "workspace": {
