@@ -16,6 +16,7 @@
     number_of_instances_id: "{{ terraformvarsresult.json.data | selectattr('attributes.key', 'match', 'number_of_instances') | map(attribute='id') | join(',') }}"
     instance_name_convention_id: "{{ terraformvarsresult.json.data | selectattr('attributes.key', 'match', 'instance_name_convention') | map(attribute='id') | join(',') }}"
     rhel_version_id: "{{ terraformvarsresult.json.data | selectattr('attributes.key', 'match', 'rhel_version') | map(attribute='id') | join(',') }}"
+    rhel_version: "{{ terraformvarsresult.json.data | selectattr('attributes.key', 'match', 'rhel_version') | map(attribute='attributes.value') | join(',') }}"
 
 - name: Update number_of_instances if defined
   ansible.builtin.uri:
@@ -182,7 +183,7 @@
     job_template: "Hostname Set VMWare"
     extra_vars:
       vm_name: "{{ vmstoadd | join(',') }}"
-      operating_system: "{{ operating_system }}"
+      operating_system: "{{ operating_system | default(rhel_version) }}"
     wait: true
   when:
     - jsonoutput.configuration.provider_config.vsphere.name is defined
