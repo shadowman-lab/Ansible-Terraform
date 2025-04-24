@@ -26,6 +26,7 @@
 - name: Set fact of VMs to be configured
   ansible.builtin.set_fact:
     vmstoadd: "{{ terraformafter | difference(terraformbefore) }}"
+    vmstodelete: "{{ terraformbefore | difference(terraformafter) }}"
 
 - name: Set hostnames if VMWare
   ansible.controller.job_launch:
@@ -67,3 +68,16 @@
     status_code: 200
     timeout: 60
   register: terraformapplyresponse
+
+- name: Update Inventory Sources if VMs were only removed
+  inventory_source_update:
+    name: "{{ item }}"
+    inventory: "Shadowman Production"
+    organization: Infrastructure
+  loop:
+    - AWS Production
+    - Azure Production
+    - VMWare Production
+  when:
+    - vmstodelete | length > 0
+    - vmstoadd | length == 0

@@ -1,7 +1,0 @@
----
-- name: Perform Post Terraform Plan Ansible Steps
-  hosts: localhost
-  gather_facts: false
-
-  roles:
-    - shadowman_terraform_cloud_post_plan

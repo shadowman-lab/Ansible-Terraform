@@ -1,0 +1,7 @@
+---
+- name: Perform Pre Terraform Apply Ansible Steps
+  hosts: localhost
+  gather_facts: false
+
+  roles:
+    - shadowman_terraform_cloud_pre_apply
