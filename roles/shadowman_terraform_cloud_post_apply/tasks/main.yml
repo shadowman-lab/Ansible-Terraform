@@ -70,7 +70,7 @@
   register: terraformapplyresponse
 
 - name: Update Inventory Sources if VMs were only removed
-  inventory_source_update:
+  ansible.controller.inventory_source_update:
     name: "{{ item }}"
     inventory: "Shadowman Production"
     organization: Infrastructure
