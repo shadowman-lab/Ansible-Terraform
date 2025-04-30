@@ -5,7 +5,7 @@
     url: "{{ plan_json_api_url }}"
     headers:
       Content-Type: "application/vnd.api+json"
-      Authorization: "Bearer {{ api_token }}"
+      Authorization: "Bearer {{ hcpterraform_api_token }}"
     status_code: 200, 204
     body_format: json
     return_content: true

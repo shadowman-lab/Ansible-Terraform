@@ -4,7 +4,7 @@
     url: "https://app.terraform.io/api/v2/vars?filter%5Borganization%5D%5Bname%5D=Shadowman&filter%5Bworkspace%5D%5Bid%5D={{ workspace_id }}"
     headers:
       Content-Type: "application/vnd.api+json"
-      Authorization: "Bearer {{ api_token }}"
+      Authorization: "Bearer {{ hcpterraform_api_token }}"
     status_code: 200, 204
     body_format: json
     return_content: true
@@ -24,7 +24,7 @@
     method: PATCH
     headers:
       Content-Type: "application/vnd.api+json"
-      Authorization: "Bearer {{ api_token }}"
+      Authorization: "Bearer {{ hcpterraform_api_token }}"
     body: |-
       {
         "data": {
@@ -45,7 +45,7 @@
     method: PATCH
     headers:
       Content-Type: "application/vnd.api+json"
-      Authorization: "Bearer {{ api_token }}"
+      Authorization: "Bearer {{ hcpterraform_api_token }}"
     body: |-
       {
         "data": {
@@ -66,7 +66,7 @@
     method: PATCH
     headers:
       Content-Type: "application/vnd.api+json"
-      Authorization: "Bearer {{ api_token }}"
+      Authorization: "Bearer {{ hcpterraform_api_token }}"
     body: |-
       {
         "data": {
@@ -87,7 +87,7 @@
     method: POST
     headers:
       Content-Type: "application/vnd.api+json"
-      Authorization: "Bearer {{ api_token }}"
+      Authorization: "Bearer {{ hcpterraform_api_token }}"
     body: |-
       {
         "data": {
@@ -112,7 +112,7 @@
     url: "https://app.terraform.io/api/v2/plans/{{ terraformplanresponse.json.data.relationships.plan.data.id }}/json-output"
     headers:
       Content-Type: "application/vnd.api+json"
-      Authorization: "Bearer {{ api_token }}"
+      Authorization: "Bearer {{ hcpterraform_api_token }}"
     status_code: 200, 204
     body_format: json
     return_content: true
@@ -153,7 +153,7 @@
     method: POST
     headers:
       Content-Type: "application/vnd.api+json"
-      Authorization: "Bearer {{ api_token }}"
+      Authorization: "Bearer {{ hcpterraform_api_token }}"
     body: |-
       {
         "comment": "approved"
@@ -168,7 +168,7 @@
     url: "https://app.terraform.io/api/v2/runs/{{ terraformplanresponse.json.data.id }}"
     headers:
       Content-Type: "application/vnd.api+json"
-      Authorization: "Bearer {{ api_token }}"
+      Authorization: "Bearer {{ hcpterraform_api_token }}"
     status_code: 200
     body_format: json
     return_content: true
