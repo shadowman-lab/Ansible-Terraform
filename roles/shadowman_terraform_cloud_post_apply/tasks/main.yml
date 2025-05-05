@@ -39,6 +39,17 @@
     - jsonoutput.configuration.provider_config.vsphere.name is defined
     - vmstoadd | length > 0
 
+- name: Update REQ if VMs were removed but also going to be added
+  ansible.controller.job_launch:
+    job_template: "ServiceNow Catalog Update"
+    extra_vars:
+      work_notes: "VMs successfully removed"
+      ticket_number: "{{ jsonoutput.variables.ticket_number.value | default(omit, true) }}"
+    wait: true
+  when:
+    - vmstodelete | length > 0
+    - vmstoadd | length > 0
+
 - name: Config VM, Deploy Web App with Failure Paths Citrix
   ansible.controller.workflow_launch:
     workflow_template: "Config VM, Deploy Web App with Failure Paths Citrix"
