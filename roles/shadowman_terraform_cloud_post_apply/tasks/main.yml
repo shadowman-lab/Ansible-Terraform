@@ -49,6 +49,7 @@
   when:
     - vmstodelete | length > 0
     - vmstoadd | length > 0
+    - jsonoutput.variables.ticket_number.value | default('') != ''
 
 - name: Config VM, Deploy Web App with Failure Paths Citrix
   ansible.controller.workflow_launch:
@@ -104,3 +105,4 @@
   when:
     - vmstodelete | length > 0
     - vmstoadd | length == 0
+    - jsonoutput.variables.ticket_number.value | default('') != ''
