@@ -81,3 +81,15 @@
   when:
     - vmstodelete | length > 0
     - vmstoadd | length == 0
+
+- name: Update REQ if VMs were only removed
+  ansible.controller.job_launch:
+    job_template: "ServiceNow Catalog Update"
+    extra_vars:
+      request_state: "closed_complete"
+      work_notes: "VMs successfully removed"
+      ticket_number: "{{ jsonoutput.variables.ticket_number.value | default(omit, true) }}"
+    wait: true
+  when:
+    - vmstodelete | length > 0
+    - vmstoadd | length == 0
