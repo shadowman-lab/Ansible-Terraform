@@ -32,7 +32,7 @@
     workflow_template: "Unsubscribe VMs for Terraform"
     extra_vars:
       vm_name: "{{ vmstodelete | join(',') }}"
-      ticket_number: "{{ ticket_number | default(omit) }}"
+      ticket_number: "{{ ticket_number | default(omit, true) }}"
     wait: true
   when: vmstodelete | length > 0
 

@@ -44,7 +44,7 @@
     workflow_template: "Config VM, Deploy Web App with Failure Paths Citrix"
     extra_vars:
       vm_name: "{{ vmstoadd | join(',') }}"
-      ticket_number: "{{ ticket_number | default(omit) }}"
+      ticket_number: "{{ ticket_number | default(omit, true) }}"
     wait: true
   when: vmstoadd | length > 0
 
