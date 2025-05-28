@@ -18,6 +18,21 @@
   ansible.builtin.set_fact:
     jsonoutput: "{{ terraformplanresult.content | from_json }}"
 
+- name: Set VMWare as Hypervisor
+  ansible.builtin.set_fact:
+    shadowman_provision_hypervisor: VMWare
+  when: jsonoutput.configuration.provider_config.vsphere.name is defined
+
+- name: Set AWS as Hypervisor
+  ansible.builtin.set_fact:
+    shadowman_provision_hypervisor: AWS
+  when: jsonoutput.configuration.provider_config.aws.name is defined
+
+- name: Set Azure as Hypervisor
+  ansible.builtin.set_fact:
+    shadowman_provision_hypervisor: Azure
+  when: jsonoutput.configuration.provider_config.azurerm.name is defined
+
 - name: Get before and after states for VMs
   ansible.builtin.set_fact:
     terraformbefore: "{{ jsonoutput.output_changes.vm_name_terraformvms.before | default([]) }}"
@@ -57,6 +72,7 @@
     extra_vars:
       vm_name: "{{ vmstoadd | join(',') }}"
       ticket_number: "{{ jsonoutput.variables.ticket_number.value | default(omit, true) }}"
+      shadowman_provision_hypervisor: "{{ shadowman_provision_hypervisor }}"
     wait: true
   when: vmstoadd | length > 0
 
@@ -83,13 +99,9 @@
 
 - name: Update Inventory Sources if VMs were only removed
   ansible.controller.inventory_source_update:
-    name: "{{ item }}"
+    name: "{{ shadowman_provision_hypervisor }} Production"
     inventory: "Shadowman Production"
     organization: Infrastructure
-  loop:
-    - AWS Production
-    - Azure Production
-    - VMWare Production
   when:
     - vmstodelete | length > 0
     - vmstoadd | length == 0
