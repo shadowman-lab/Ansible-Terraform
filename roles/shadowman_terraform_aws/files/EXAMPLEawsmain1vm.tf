@@ -106,7 +106,7 @@ delete_on_termination = false
       Name = "rhel9app.shadowman.dev"
       owner: "adworjan"
       env: "dev"
-      operating_system: "RHEL9"
+      operating_system: "RHEL"
       usage: "shadowmandemos"
       }
 }
