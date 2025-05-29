@@ -1,3 +1,14 @@
+terraform {
+  required_providers {
+    vsphere = {
+      source  = "hashicorp/vsphere"
+      version = "~> 2.10"
+    }
+  }
+
+  required_version = "~> 1.2"
+}
+
 provider "vsphere" {
   # If you have a self-signed cert
   allow_unverified_ssl = true

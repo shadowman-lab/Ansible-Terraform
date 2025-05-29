@@ -71,7 +71,6 @@
         mode: '755'
         content: |
           .terraform
-          .terraform.lock.hcl
       when: projectcreate.changed
 
 - name: Creating Terraform IoC
