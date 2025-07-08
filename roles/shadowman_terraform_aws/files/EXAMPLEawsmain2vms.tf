@@ -76,6 +76,25 @@ resource "aws_eip" "ip-one" {
     "Name" = "Ansible-Terraform-EIP"
   }
 }
+
+resource "aws_eip" "ip-one" {
+  domain                    = "vpc"
+  network_interface         = aws_network_interface.ansible-nic.id
+  depends_on                = [aws_instance.app-server]
+  tags = {
+    "Name" = "Ansible-Terraform-EIP"
+  }
+}
+
+resource "aws_eip" "ip-one2" {
+  domain                    = "vpc"
+  network_interface         = aws_network_interface.ansible-nic2.id
+  depends_on                = [aws_instance.app-server2]
+  tags = {
+    "Name" = "Ansible-Terraform-EIP2"
+  }
+}
+
 resource "aws_security_group" "web-pub-sg" {
   name        = "Ansible_SG"                ### Survey
   description = "allow inbound traffic"
