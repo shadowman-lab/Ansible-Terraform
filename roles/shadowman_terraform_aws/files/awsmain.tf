@@ -68,14 +68,6 @@ resource "aws_network_interface" "ansible-nic" {
     "Name" = "Ansible-Terraform-NI"
   }
 }
-resource "aws_eip" "ip-one" {
-  domain                    = "vpc"
-  network_interface         = aws_network_interface.ansible-nic.id
-  depends_on                = [aws_instance.app-server]
-  tags = {
-    "Name" = "Ansible-Terraform-EIP"
-  }
-}
 
 resource "aws_eip" "ip-one" {
   domain                    = "vpc"
