@@ -117,11 +117,42 @@ delete_on_termination = false
       Name = "rhel9app.shadowman.dev"
       owner: "adworjan"
       env: "dev"
-      operating_system: "RHEL"
+      operating_system: "RHEL9"
       usage: "shadowmandemos"
       }
 }
 
 output "app-server" {
   value = aws_instance.app-server.tags.Name
+}
+
+resource "aws_network_interface" "ansible-nic2" {
+  subnet_id       = aws_subnet.public.id
+  private_ips     = ["11.0.1.100"]
+  security_groups = [aws_security_group.web-pub-sg.id]
+  tags = {
+    "Name" = "Ansible-Terraform-NI2"
+  }
+}
+
+resource "aws_instance" "app-server2" {
+  instance_type = "t2.micro"
+  ami           = "ami-04f8d0dc7c0ac7a0e"
+  network_interface {
+    network_interface_id = aws_network_interface.ansible-nic2.id
+    device_index         = 0
+delete_on_termination = false
+  }
+  key_name = "Shadowmankey"
+  tags = {
+      Name = "rhel9app2.shadowman.dev"
+      owner: "adworjan"
+      env: "dev"
+      operating_system: "RHEL"
+      usage: "shadowmandemos"
+      }
+}
+
+output "app-server2" {
+  value = aws_instance.app-server2.tags.Name
 }
