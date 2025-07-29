@@ -12,6 +12,21 @@ terraform {
 provider "aws" {
   region     = "us-east-2"
 }
+
+data "aws_ami" "rhelami" {
+  most_recent      = true
+  owners           = ["309956199498"]
+
+  filter {
+    name   = "name"
+    values = ["RHEL-9.6*HVM*-*Access2*"]
+  }
+   filter {
+    name   = "architecture"
+    values = ["x86_64"]
+  }
+}
+
 resource "aws_vpc" "ansiblevpc" {
   cidr_block = "11.0.0.0/16"
   enable_dns_hostnames = true
@@ -19,14 +34,7 @@ resource "aws_vpc" "ansiblevpc" {
     "Name" = "Ansible-Terraform-VPC"
   }
 }
-resource "aws_subnet" "private" {
-  vpc_id            = aws_vpc.ansiblevpc.id
-  cidr_block        = "11.0.2.0/24"
-  availability_zone = "us-east-2a"
-  tags = {
-    "Name" = "Ansible-Terraform-Subnet-Private"
-  }
-}
+
 resource "aws_subnet" "public" {
   vpc_id            = aws_vpc.ansiblevpc.id
   cidr_block        = "11.0.1.0/24"
@@ -45,10 +53,7 @@ resource "aws_route_table_association" "public" {
   subnet_id      = aws_subnet.public.id
   route_table_id = aws_route_table.ansible-rt.id
 }
-resource "aws_route_table_association" "private" {
-  subnet_id      = aws_subnet.private.id
-  route_table_id = aws_route_table.ansible-rt.id
-}
+
 resource "aws_internet_gateway" "ansible-igw" {
   vpc_id = aws_vpc.ansiblevpc.id
   tags = {
@@ -59,32 +64,6 @@ resource "aws_route" "internet-route" {
   destination_cidr_block = "0.0.0.0/0"
   route_table_id         = aws_route_table.ansible-rt.id
   gateway_id             = aws_internet_gateway.ansible-igw.id
-}
-resource "aws_network_interface" "ansible-nic" {
-  subnet_id       = aws_subnet.public.id
-  private_ips     = ["11.0.1.120"]
-  security_groups = [aws_security_group.web-pub-sg.id]
-  tags = {
-    "Name" = "Ansible-Terraform-NI"
-  }
-}
-
-resource "aws_eip" "ip-one" {
-  domain                    = "vpc"
-  network_interface         = aws_network_interface.ansible-nic.id
-  depends_on                = [aws_instance.app-server]
-  tags = {
-    "Name" = "Ansible-Terraform-EIP"
-  }
-}
-
-resource "aws_eip" "ip-one2" {
-  domain                    = "vpc"
-  network_interface         = aws_network_interface.ansible-nic2.id
-  depends_on                = [aws_instance.app-server2]
-  tags = {
-    "Name" = "Ansible-Terraform-EIP2"
-  }
 }
 
 resource "aws_security_group" "web-pub-sg" {
@@ -117,12 +96,10 @@ resource "aws_security_group" "web-pub-sg" {
 }
 resource "aws_instance" "app-server" {
   instance_type = "t2.micro"
-  ami           = "ami-04f8d0dc7c0ac7a0e"
-  network_interface {
-    network_interface_id = aws_network_interface.ansible-nic.id
-    device_index         = 0
-delete_on_termination = false
-  }
+  ami           = data.aws_ami.rhelami.id
+  associate_public_ip_address = true
+  subnet_id       = aws_subnet.public.id
+  vpc_security_group_ids = [aws_security_group.web-pub-sg.id]
   key_name = "Shadowmankey"
   tags = {
       Name = "rhel9app.shadowman.dev"
@@ -137,23 +114,12 @@ output "app-server" {
   value = aws_instance.app-server.tags.Name
 }
 
-resource "aws_network_interface" "ansible-nic2" {
-  subnet_id       = aws_subnet.public.id
-  private_ips     = ["11.0.1.100"]
-  security_groups = [aws_security_group.web-pub-sg.id]
-  tags = {
-    "Name" = "Ansible-Terraform-NI2"
-  }
-}
-
 resource "aws_instance" "app-server2" {
   instance_type = "t2.micro"
-  ami           = "ami-04f8d0dc7c0ac7a0e"
-  network_interface {
-    network_interface_id = aws_network_interface.ansible-nic2.id
-    device_index         = 0
-delete_on_termination = false
-  }
+  ami           = data.aws_ami.rhelami.id
+  associate_public_ip_address = true
+  subnet_id       = aws_subnet.public.id
+  vpc_security_group_ids = [aws_security_group.web-pub-sg.id]
   key_name = "Shadowmankey"
   tags = {
       Name = "rhel9app2.shadowman.dev"
