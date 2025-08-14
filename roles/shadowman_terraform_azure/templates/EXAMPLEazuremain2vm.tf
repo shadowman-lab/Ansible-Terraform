@@ -114,18 +114,13 @@ resource "azurerm_linux_virtual_machine" "app-server" {
   admin_username                  = "{{ azureuser }}"
   admin_password                  = "{{ azurepassword }}"
   disable_password_authentication = false
+  license_type                    = "RHEL_BYOS"
 
   source_image_reference {
     publisher = "RedHat"
-    offer     = "rhel-byos"
-    sku       = "rhel-lvm95"
+    offer     = "RHEL"
+    sku       = "9-lvm-gen2"
     version   = "latest"
-  }
-
-  plan {
-    name      = "rhel-lvm95"
-    product   = "rhel-byos"
-    publisher = "redhat"
   }
 
   os_disk {
@@ -180,18 +175,13 @@ resource "azurerm_linux_virtual_machine" "app-server2" {
   admin_username                  = "{{ azureuser }}"
   admin_password                  = "{{ azurepassword }}"
   disable_password_authentication = false
+  license_type                    = "RHEL_BYOS"
 
   source_image_reference {
     publisher = "RedHat"
-    offer     = "rhel-byos"
-    sku       = "rhel-lvm95"
+    offer     = "RHEL"
+    sku       = "9-lvm-gen2"
     version   = "latest"
-  }
-
-  plan {
-    name      = "rhel-lvm95"
-    product   = "rhel-byos"
-    publisher = "redhat"
   }
 
   os_disk {
