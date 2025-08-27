@@ -133,3 +133,4 @@ resource "aws_instance" "app-server2" {
 output "app-server2" {
   value = aws_instance.app-server2.tags.Name
 }
+# Test
