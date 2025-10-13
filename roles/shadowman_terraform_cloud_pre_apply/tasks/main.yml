@@ -1,27 +1,17 @@
 ---
 
-- name: Send Get request using uri module to get plan information
-  ansible.builtin.uri:
-    url: "{{ plan_json_api_url }}"
-    headers:
-      Content-Type: "application/vnd.api+json"
-      Authorization: "Bearer {{ hcpterraform_api_token }}"
-    status_code: 200, 204
-    body_format: json
-    return_content: true
-    timeout: 60
-  register: terraformplanresult
-  retries: 20
-  until: '"\"complete\":true" in terraformplanresult.content'
-
-- name: Set plan output to JSON Var
-  ansible.builtin.set_fact:
-    jsonoutput: "{{ terraformplanresult.content | from_json }}"
+- name: Get json plan information by run ID
+  hashicorp.terraform.view_plan:
+    run_id: "{{ run_id }}"
+    tf_token: "{{ hcpterraform_api_token }}"
+    output_format: json
+  register: planresults
+  until: planresults.json_output.complete
 
 - name: Get before and after states for VMs
   ansible.builtin.set_fact:
-    terraformbefore: "{{ jsonoutput.output_changes.vm_name_terraformvms.before | default([]) }}"
-    terraformafter: "{{ jsonoutput.output_changes.vm_name_terraformvms.after | default([]) }}"
+    terraformbefore: "{{ planresults.json_output.output_changes.vm_name_terraformvms.before | default([]) }}"
+    terraformafter: "{{ planresults.json_output.output_changes.vm_name_terraformvms.after | default([]) }}"
 
 - name: Set fact of VMs to be deleted
   ansible.builtin.set_fact:
@@ -32,7 +22,7 @@
     workflow_template: "Unsubscribe VMs for Terraform"
     extra_vars:
       vm_name: "{{ vmstodelete | join(',') }}"
-      ticket_number: "{{ jsonoutput.variables.ticket_number.value | default(omit, true) }}"
+      ticket_number: "{{ planresults.json_output.variables.ticket_number.value | default(omit, true) }}"
     wait: true
   when: vmstodelete | length > 0
 

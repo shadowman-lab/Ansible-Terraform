@@ -1,42 +1,32 @@
 ---
 
-- name: Send Get request using uri module to get plan information
-  ansible.builtin.uri:
-    url: "{{ plan_json_api_url }}"
-    headers:
-      Content-Type: "application/vnd.api+json"
-      Authorization: "Bearer {{ hcpterraform_api_token }}"
-    status_code: 200, 204
-    body_format: json
-    return_content: true
-    timeout: 60
-  register: terraformplanresult
-  retries: 20
-  until: '"\"complete\":true" in terraformplanresult.content'
-
-- name: Set plan output to JSON Var
-  ansible.builtin.set_fact:
-    jsonoutput: "{{ terraformplanresult.content | from_json }}"
+- name: Get json plan information by run ID
+  hashicorp.terraform.view_plan:
+    run_id: "{{ run_id }}"
+    tf_token: "{{ hcpterraform_api_token }}"
+    output_format: json
+  register: planresults
+  until: planresults.json_output.complete
 
 - name: Set VMWare as Hypervisor
   ansible.builtin.set_fact:
     shadowman_provision_hypervisor: VMWare
-  when: jsonoutput.configuration.provider_config.vsphere.name is defined
+  when: planresults.json_output.configuration.provider_config.vsphere.name is defined
 
 - name: Set AWS as Hypervisor
   ansible.builtin.set_fact:
     shadowman_provision_hypervisor: AWS
-  when: jsonoutput.configuration.provider_config.aws.name is defined
+  when: planresults.json_output.configuration.provider_config.aws.name is defined
 
 - name: Set Azure as Hypervisor
   ansible.builtin.set_fact:
     shadowman_provision_hypervisor: Azure
-  when: jsonoutput.configuration.provider_config.azurerm.name is defined
+  when: planresults.json_output.configuration.provider_config.azurerm.name is defined
 
 - name: Get before and after states for VMs
   ansible.builtin.set_fact:
-    terraformbefore: "{{ jsonoutput.output_changes.vm_name_terraformvms.before | default([]) }}"
-    terraformafter: "{{ jsonoutput.output_changes.vm_name_terraformvms.after | default([]) }}"
+    terraformbefore: "{{ planresults.json_output.output_changes.vm_name_terraformvms.before | default([]) }}"
+    terraformafter: "{{ planresults.json_output.output_changes.vm_name_terraformvms.after | default([]) }}"
 
 - name: Set fact of VMs to be configured
   ansible.builtin.set_fact:
@@ -48,10 +38,10 @@
     job_template: "Hostname Set VMWare"
     extra_vars:
       vm_name: "{{ vmstoadd | join(',') }}"
-      operating_system: "{{ jsonoutput.variables.rhel_version.value }}"
+      operating_system: "{{ planresults.json_output.variables.rhel_version.value }}"
     wait: true
   when:
-    - jsonoutput.configuration.provider_config.vsphere.name is defined
+    - planresults.json_output.configuration.provider_config.vsphere.name is defined
     - vmstoadd | length > 0
 
 - name: Update REQ if VMs were removed but also going to be added
@@ -59,19 +49,19 @@
     job_template: "ServiceNow Catalog Update"
     extra_vars:
       work_notes: "VMs successfully removed"
-      ticket_number: "{{ jsonoutput.variables.ticket_number.value | default(omit, true) }}"
+      ticket_number: "{{ planresults.json_output.variables.ticket_number.value | default(omit, true) }}"
     wait: true
   when:
     - vmstodelete | length > 0
     - vmstoadd | length > 0
-    - jsonoutput.variables.ticket_number.value | default('') != ''
+    - planresults.json_output.variables.ticket_number.value | default('') != ''
 
 - name: Config VM, Deploy Web App with Failure Paths Citrix
   ansible.controller.workflow_launch:
     workflow_template: "Config VM, Deploy Web App with Failure Paths Citrix"
     extra_vars:
       vm_name: "{{ vmstoadd | join(',') }}"
-      ticket_number: "{{ jsonoutput.variables.ticket_number.value | default(omit, true) }}"
+      ticket_number: "{{ planresults.json_output.variables.ticket_number.value | default(omit, true) }}"
       shadowman_provision_hypervisor: "{{ shadowman_provision_hypervisor }}"
     wait: true
   when: vmstoadd | length > 0
@@ -112,9 +102,9 @@
     extra_vars:
       request_state: "closed_complete"
       work_notes: "VMs successfully removed"
-      ticket_number: "{{ jsonoutput.variables.ticket_number.value | default(omit, true) }}"
+      ticket_number: "{{ planresults.json_output.variables.ticket_number.value | default(omit, true) }}"
     wait: true
   when:
     - vmstodelete | length > 0
     - vmstoadd | length == 0
-    - jsonoutput.variables.ticket_number.value | default('') != ''
+    - planresults.json_output.variables.ticket_number.value | default('') != ''
