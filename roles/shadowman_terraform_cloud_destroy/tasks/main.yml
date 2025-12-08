@@ -42,3 +42,24 @@
     poll: true
     poll_timeout: 600
     poll_interval: 10
+
+- name: Set VMWare as Hypervisor
+  ansible.builtin.set_fact:
+    shadowman_provision_hypervisor: VMWare
+  when: terraformplanresult.json_output.configuration.provider_config.vsphere.name is defined
+
+- name: Set AWS as Hypervisor
+  ansible.builtin.set_fact:
+    shadowman_provision_hypervisor: AWS
+  when: terraformplanresult.json_output.configuration.provider_config.aws.name is defined
+
+- name: Set Azure as Hypervisor
+  ansible.builtin.set_fact:
+    shadowman_provision_hypervisor: Azure
+  when: terraformplanresult.json_output.configuration.provider_config.azurerm.name is defined
+
+- name: Update Inventory Source
+  ansible.controller.inventory_source_update:
+    name: "{{ shadowman_provision_hypervisor }} Production"
+    inventory: "Shadowman Production"
+    organization: Infrastructure
