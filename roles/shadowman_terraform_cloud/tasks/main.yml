@@ -139,11 +139,27 @@
     - jsonoutput.configuration.provider_config.vsphere.name is defined
     - vmstoadd | length > 0
 
+- name: Set VMWare as Hypervisor
+  ansible.builtin.set_fact:
+    shadowman_provision_hypervisor: VMWare
+  when: terraformplanresult.json_output.configuration.provider_config.vsphere.name is defined
+
+- name: Set AWS as Hypervisor
+  ansible.builtin.set_fact:
+    shadowman_provision_hypervisor: AWS
+  when: terraformplanresult.json_output.configuration.provider_config.aws.name is defined
+
+- name: Set Azure as Hypervisor
+  ansible.builtin.set_fact:
+    shadowman_provision_hypervisor: Azure
+  when: terraformplanresult.json_output.configuration.provider_config.azurerm.name is defined
+
 - name: Config VM, Deploy Web App with Failure Paths Citrix
   ansible.controller.workflow_launch:
     workflow_template: "Config VM, Deploy Web App with Failure Paths Citrix"
     extra_vars:
       vm_name: "{{ vmstoadd | join(',') }}"
       ticket_number: "{{ ticket_number | default(omit) }}"
+      shadowman_provision_hypervisor: "{{ shadowman_provision_hypervisor }}"
     wait: true
   when: vmstoadd | length > 0
