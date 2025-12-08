@@ -84,7 +84,6 @@
 - name: Perform Terraform Plan
   hashicorp.terraform.run:
     workspace_id: "{{ workspace_id }}"
-    is_destroy: true
     auto_apply: false
     state: present
     tf_token: "{{ hcpterraform_api_token }}"
