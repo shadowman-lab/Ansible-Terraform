@@ -81,54 +81,27 @@
     status_code: 200
   when: operating_system is defined
 
-- name: Send POST request using uri module to run plan
-  ansible.builtin.uri:
-    url: "https://app.terraform.io/api/v2/runs"
-    method: POST
-    headers:
-      Content-Type: "application/vnd.api+json"
-      Authorization: "Bearer {{ hcpterraform_api_token }}"
-    body: |-
-      {
-        "data": {
-          "type": "runs",
-          "relationships": {
-            "workspace": {
-              "data": {
-                "type": "workspaces",
-                "id": "{{ workspace_id }}"
-              }
-            }
-          }
-        }
-      }
-    status_code: 201
-    body_format: json
-    timeout: 60
+- name: Perform Terraform Plan
+  hashicorp.terraform.run:
+    workspace_id: "{{ workspace_id }}"
+    is_destroy: true
+    auto_apply: false
+    state: present
+    tf_token: "{{ hcpterraform_api_token }}"
   register: terraformplanresponse
 
-- name: Send Get request using uri module to get plan information
-  ansible.builtin.uri:
-    url: "https://app.terraform.io/api/v2/plans/{{ terraformplanresponse.json.data.relationships.plan.data.id }}/json-output"
-    headers:
-      Content-Type: "application/vnd.api+json"
-      Authorization: "Bearer {{ hcpterraform_api_token }}"
-    status_code: 200, 204
-    body_format: json
-    return_content: true
-    timeout: 60
+
+- name: Get json plan information by plan ID
+  hashicorp.terraform.view_plan:
+    plan_id: "{{ terraformplanresponse.relationships.plan.data.id }}"
+    tf_token: "{{ hcpterraform_api_token }}"
+    output_format: json
   register: terraformplanresult
-  retries: 20
-  until: '"\"complete\":true" in terraformplanresult.content'
 
-- name: Set plan output to JSON Var
+- name: Get before and after states
   ansible.builtin.set_fact:
-    jsonoutput: "{{ terraformplanresult.content | from_json }}"
-
-- name: Get before and after states for VMs
-  ansible.builtin.set_fact:
-    terraformbefore: "{{ jsonoutput.output_changes.vm_name_terraformvms.before | default([]) }}"
-    terraformafter: "{{ jsonoutput.output_changes.vm_name_terraformvms.after | default([]) }}"
+    terraformbefore: "{{ terraformplanresult.json_output.output_changes.vm_name_terraformvms.before | default([]) }}"
+    terraformafter: "{{ terraformplanresult.json_output.output_changes.vm_name_terraformvms.after | default([]) }}"
 
 - name: Set fact of VMs to be deleted
   ansible.builtin.set_fact:
@@ -147,36 +120,14 @@
     wait: true
   when: vmstodelete | length > 0
 
-- name: Send POST request using uri module to apply the plan
-  ansible.builtin.uri:
-    url: "https://app.terraform.io/api/v2/runs/{{ terraformplanresponse.json.data.id }}/actions/apply"
-    method: POST
-    headers:
-      Content-Type: "application/vnd.api+json"
-      Authorization: "Bearer {{ hcpterraform_api_token }}"
-    body: |-
-      {
-        "comment": "approved"
-      }
-    status_code: 202
-    timeout: 60
-  register: terraformapplyresponse
-  when: jsonoutput.applyable
-
-- name: Send Get request using uri module to get run status completed
-  ansible.builtin.uri:
-    url: "https://app.terraform.io/api/v2/runs/{{ terraformplanresponse.json.data.id }}"
-    headers:
-      Content-Type: "application/vnd.api+json"
-      Authorization: "Bearer {{ hcpterraform_api_token }}"
-    status_code: 200
-    body_format: json
-    return_content: true
-    timeout: 60
-  register: terraformrunstatus
-  retries: 50
-  until: terraformrunstatus.json.data.attributes.status == "applied"
-  when: jsonoutput.applyable
+- name: Apply the existing plan
+  hashicorp.terraform.run:
+    run_id: "{{ terraformplanresponse.id }}"
+    tf_token: "{{ hcpterraform_api_token }}"
+    state: "applied"
+    poll: true
+    poll_timeout: 600
+    poll_interval: 10
 
 - name: Set hostnames if VMWare
   ansible.controller.job_launch:
