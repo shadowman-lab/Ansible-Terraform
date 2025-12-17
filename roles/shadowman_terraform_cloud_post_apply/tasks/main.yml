@@ -85,6 +85,7 @@
           }
       }
     status_code: 200
+    body_format: json
     timeout: 60
   register: terraformapplyresponse
 
