@@ -39,7 +39,8 @@
           "type": "task-results",
             "attributes": {
               "status": "passed",
-              "message": "Any necessary deprovision completed by AAP"
+              "message": "Any necessary deprovision completed by AAP",
+              "url": "https://aap.shadowman.dev/execution/jobs/playbook/{{ awx_job_id }}/output"
             }
           }
       }
