@@ -33,18 +33,13 @@ data "vsphere_network" "network" {
   datacenter_id = data.vsphere_datacenter.dc.id
 }
 
-data "vsphere_virtual_machine" "template7" {
-  name          = "/Shadowman-DC/vm/RHEL7_ShadowMan"
-  datacenter_id = data.vsphere_datacenter.dc.id
-}
-
-data "vsphere_virtual_machine" "template8" {
-  name          = "/Shadowman-DC/vm/RHEL8_ShadowMan"
-  datacenter_id = data.vsphere_datacenter.dc.id
-}
-
 data "vsphere_virtual_machine" "template9" {
   name          = "/Shadowman-DC/vm/RHEL9_ShadowMan"
+  datacenter_id = data.vsphere_datacenter.dc.id
+}
+
+data "vsphere_virtual_machine" "template10" {
+  name          = "/Shadowman-DC/vm/RHEL10_ShadowMan"
   datacenter_id = data.vsphere_datacenter.dc.id
 }
 
@@ -53,15 +48,15 @@ resource "vsphere_virtual_machine" "server1" {
   resource_pool_id = data.vsphere_compute_cluster.cluster.resource_pool_id
   datastore_id     = data.vsphere_datastore.datastore.id
   folder           = "Lab virtual machine"
-  firmware         = data.vsphere_virtual_machine.template7.firmware
-  scsi_type        = data.vsphere_virtual_machine.template7.scsi_type
+  firmware         = data.vsphere_virtual_machine.template9.firmware
+  scsi_type        = data.vsphere_virtual_machine.template9.scsi_type
 
-  num_cpus = data.vsphere_virtual_machine.template7.num_cpus
-  memory   = data.vsphere_virtual_machine.template7.memory
+  num_cpus = data.vsphere_virtual_machine.template9.num_cpus
+  memory   = data.vsphere_virtual_machine.template9.memory
 
   network_interface {
     network_id = data.vsphere_network.network.id
-    adapter_type = data.vsphere_virtual_machine.template7.network_interface_types[0]
+    adapter_type = data.vsphere_virtual_machine.template9.network_interface_types[0]
   }
 
   tags = [
@@ -76,14 +71,14 @@ resource "vsphere_virtual_machine" "server1" {
 
   disk {
     label            = "server1"
-    thin_provisioned = data.vsphere_virtual_machine.template7.disks.0.thin_provisioned
-    size             = data.vsphere_virtual_machine.template7.disks.0.size
+    thin_provisioned = data.vsphere_virtual_machine.template9.disks.0.thin_provisioned
+    size             = data.vsphere_virtual_machine.template9.disks.0.size
   }
 
-  guest_id = data.vsphere_virtual_machine.template7.guest_id
+  guest_id = data.vsphere_virtual_machine.template9.guest_id
 
   clone {
-    template_uuid = data.vsphere_virtual_machine.template7.id
+    template_uuid = data.vsphere_virtual_machine.template9.id
   }
 }
 
@@ -96,15 +91,15 @@ resource "vsphere_virtual_machine" "server2" {
   resource_pool_id = data.vsphere_compute_cluster.cluster.resource_pool_id
   datastore_id     = data.vsphere_datastore.datastore.id
   folder           = "Lab virtual machine"
-  firmware         = data.vsphere_virtual_machine.template8.firmware
-  scsi_type        = data.vsphere_virtual_machine.template8.scsi_type
+  firmware         = data.vsphere_virtual_machine.template10.firmware
+  scsi_type        = data.vsphere_virtual_machine.template10.scsi_type
 
-  num_cpus = data.vsphere_virtual_machine.template8.num_cpus
-  memory   = data.vsphere_virtual_machine.template8.memory
+  num_cpus = data.vsphere_virtual_machine.template10.num_cpus
+  memory   = data.vsphere_virtual_machine.template10.memory
 
   network_interface {
     network_id = data.vsphere_network.network.id
-    adapter_type = data.vsphere_virtual_machine.template8.network_interface_types[0]
+    adapter_type = data.vsphere_virtual_machine.template10.network_interface_types[0]
   }
 
   tags = [
@@ -119,14 +114,14 @@ resource "vsphere_virtual_machine" "server2" {
 
   disk {
     label            = "server2"
-    thin_provisioned = data.vsphere_virtual_machine.template8.disks.0.thin_provisioned
-    size             = data.vsphere_virtual_machine.template8.disks.0.size
+    thin_provisioned = data.vsphere_virtual_machine.template10.disks.0.thin_provisioned
+    size             = data.vsphere_virtual_machine.template10.disks.0.size
   }
 
-  guest_id = data.vsphere_virtual_machine.template8.guest_id
+  guest_id = data.vsphere_virtual_machine.template10.guest_id
 
   clone {
-    template_uuid = data.vsphere_virtual_machine.template8.id
+    template_uuid = data.vsphere_virtual_machine.template10.id
   }
 }
 
