@@ -80,7 +80,7 @@
             "attributes": {
               "status": "passed",
               "message": "Any necessary configuration completed by AAP",
-              "url": "https://aap.shadowman.dev/execution/jobs/playbook/{{ awx_job_id }}/output"
+              "url": "https://aap.shadowman.dev/execution/jobs/playbook/{{ tower_job_id }}/output"
             }
           }
       }
