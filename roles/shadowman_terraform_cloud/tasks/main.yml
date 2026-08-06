@@ -37,9 +37,9 @@
     tf_token: "{{ hcpterraform_api_token }}"
   register: terraformplanresponse
 
-- name: Get json plan information by plan ID
+- name: Get json plan information by run ID
   hashicorp.terraform.view_plan:
-    plan_id: "{{ terraformplanresponse.relationships.plan.data.id }}"
+    plan_id: "{{ terraformplanresponse.plan.id }}"
     tf_token: "{{ hcpterraform_api_token }}"
     output_format: json
   register: terraformplanresult
